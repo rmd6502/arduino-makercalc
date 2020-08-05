@@ -1,9 +1,13 @@
 #include <ctype.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "calculator.h"
+#if ARDUINO
+#include "Arduino.h"
+#endif
 
 char const * Calculator::operators = "+-/*";
 uint8_t Calculator::operator_precedence[] = {0,0,1,1};
@@ -40,8 +44,10 @@ void Calculator::input(char key) {
             this->result[result_pos] = '\0';
         }
     } else {
+        Serial.println("A");
         // Store Operand
         if (!initialInput) {
+          Serial.println("AA");
           double value = strtod(input_buffer, nullptr);
           if (num_pos < NUM_STACK_LENGTH) {
               num_stack[num_pos++] = value;
@@ -66,6 +72,13 @@ void Calculator::input(char key) {
             initialInput = true;
         } else if (key == 'C') {
           init();
+        } else if (key == 'E') {
+          Serial.print("B ");Serial.println(num_pos);
+          if (num_pos > 0) {
+            num_stack[num_pos-1] = sqrt(num_stack[num_pos - 1]);
+            snprintf(result, RESULT_SIZE, "%g", num_stack[num_pos - 1]);
+            initialInput = true;
+          }
         }
     }
 }
