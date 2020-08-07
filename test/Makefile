@@ -14,7 +14,7 @@ testCalculator: calculator.o test.o
 calculator.o: ../calculator.h ../calculator.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ ../calculator.cpp
 
-unitconv.o: ../unitconv.h ../unitconv.cpp
+unitconv.o: ../unitconv.h ../units.h ../unitconv.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ ../unitconv.cpp
 
 testUnitConv: unitconv.o testUnits.o

@@ -46,6 +46,7 @@ struct ConstantUnit : Unit {
   double value;
   ConstantUnit(std::string unitName, double unitValue) : Unit(unitName, {}), value(unitValue) {}
   virtual double factor() { return value; }
+  DimensionType dimension() { return UnitConv::BIAS; }
 };
 
 struct SimpleUnit : Unit {
