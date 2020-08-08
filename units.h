@@ -27,6 +27,8 @@ static CompoundUnit *quart = new CompoundUnit("quart", std::set<std::string>{"qu
     std::map<std::string, double>{{"cm", 3}}, 946);
 static CompoundUnit *oz = new CompoundUnit("ounce av", std::set<std::string>{"oz av"},
     std::map<std::string, double>{{"quart", 1}}, 1./32.);
+static CompoundUnit *pt = new CompoundUnit("pint", std::set<std::string>{"pt"},
+    std::map<std::string, double>{{"oz av", 1}}, 16);
 static CompoundUnit *gal = new CompoundUnit("gallon", std::set<std::string>{"gal", "gallons"},
     std::map<std::string, double>{{"quart", 1}}, 4);
 
