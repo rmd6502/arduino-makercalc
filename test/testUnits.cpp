@@ -10,12 +10,12 @@ int main(void) {
     }
     DimensionedQuantity d = Unit::createDimensioned(5.0, "feet");
     std::cout << "5 ft " << d.dimension << ", " << d.value << std::endl;
-    DimensionedQuantity d2 = UnitConv::convertTo(d, "in");
+    DimensionedQuantity d2 = UnitConv::convertTo(&d, "in");
     std::cout << "5 ft->in " << d2.dimension << ", " << d2.value << std::endl;
 
     d = Unit::createDimensioned(10, "sqyd");
     std::cout << "10 sqyd " << d.dimension << ", " << d.value << std::endl;
-    d2 = UnitConv::convertTo(d, "acre");
+    d2 = UnitConv::convertTo(&d, "acre");
     std::cout << "10 sqyd->acre " << d2.dimension << ", " << d2.value << std::endl;
 
     d = Unit::createDimensioned(10, "liter");
@@ -28,6 +28,6 @@ int main(void) {
     d = Unit::createDimensioned(10, "gal");
     d3 = d / d2;
     std::cout << "10g / 2 in " << d3.dimension << ", " << d3.value << std::endl;
-    d3 = UnitConv::convertTo(d3, "sqin");
+    d3 = UnitConv::convertTo(&d3, "sqin");
     std::cout << "10g / 2 in => sqin" << d3.dimension << ", " << d3.value << std::endl;
 }

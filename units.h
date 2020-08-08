@@ -18,7 +18,7 @@ static CompoundUnit *sqcm = new CompoundUnit("sqcm",std::set<std::string>{"cm2",
   std::map<std::string, double>{{"cm", 2}});
 static CompoundUnit *sqm = new CompoundUnit("sqm",std::set<std::string>{"m2","m²","square meters", "square meter"},
   std::map<std::string, double>{{"m", 2}});
-static CompoundUnit *cucm = new CompoundUnit("cucm",std::set<std::string>{"cm3","cm³","cubic centimeter", "cubic centimeters"},
+static CompoundUnit *cucm = new CompoundUnit("cucm",std::set<std::string>{"cm3","cm³","cubic centimeter", "cubic centimeters", "ml", "milliliter"},
   std::map<std::string, double>{{"cm", 3}});
 static CompoundUnit *l = new CompoundUnit("l", std::set<std::string>{"liter", "liters"},
     std::map<std::string, double>{{"cm", 3}}, 1000);
