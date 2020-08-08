@@ -1,4 +1,5 @@
 test/testCalc
+test/testUnitConv
 .vscode/
 # Prerequisites
 *.d

@@ -9,9 +9,18 @@
 class Unit;
 
 using DimensionType = uint32_t;
-using DimensionedQuantity = std::pair<DimensionType, double>;
-using UnitQuantity = std::pair<std::shared_ptr<Unit>, double>;
-  
+
+struct DimensionedQuantity {
+  DimensionType dimension;
+  double value;
+  DimensionedQuantity(DimensionType dim, double q) : dimension(dim), value(q) {}
+  explicit DimensionedQuantity(double q) : dimension(0), value(q) {}
+  DimensionedQuantity operator+(const DimensionedQuantity& other) const;
+  DimensionedQuantity operator-(const DimensionedQuantity& other) const;
+  DimensionedQuantity operator*(const DimensionedQuantity& other) const;
+  DimensionedQuantity operator/(const DimensionedQuantity& other) const;
+};
+
 struct UnitConv {
   static constexpr uint32_t LENGTH_UNIT = 1;
   static constexpr uint32_t TEMP_UNIT = 10;
@@ -42,6 +51,13 @@ struct Unit {
   static std::shared_ptr<Unit> findUnit(std::string unitName);
 };
 
+struct UnitQuantity : public DimensionedQuantity {
+  std::shared_ptr<Unit> unit;
+  UnitQuantity(std::shared_ptr<Unit> u, double q) : DimensionedQuantity(q) {
+    dimension = u->dimension();
+  }
+};
+
 struct ConstantUnit : Unit {
   double value;
   ConstantUnit(std::string unitName, double unitValue) : Unit(unitName, {}), value(unitValue) {}
@@ -61,8 +77,9 @@ struct CompoundUnit : Unit {
   // pair<Unit, power> - power can be negative
   // for instance kg m / s^2
   // would be [<kg,1>,<m,1>,<s,-2>]
+  double constantMultiplier;
   std::map<std::string, std::pair<std::shared_ptr<Unit>, double>> components;
-  CompoundUnit(std::string unitName, std::set<std::string> unitAliases, std::map<std::string, double> unitComponents);
+  CompoundUnit(std::string unitName, std::set<std::string> unitAliases, std::map<std::string, double> unitComponents, double constant = 1);
   DimensionType dimension();
   double factor();
 };

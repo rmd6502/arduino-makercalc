@@ -1,4 +1,5 @@
 #include "unitconv.h"
+Unit::ConversionMapType Unit::conversionMap = {};
 #include "units.h"
 
 #include <map>
@@ -6,7 +7,6 @@
 #include <string>
 #include <stdint.h>
 
-Unit::ConversionMapType Unit::conversionMap = {};
 
 std::shared_ptr<Unit> Unit::findUnit(std::string unitName) {
   auto unitIt = Unit::conversionMap.find(unitName);
@@ -22,19 +22,19 @@ DimensionedQuantity Unit::createDimensioned(double value, std::string fromUnit) 
 }
 
 DimensionedQuantity Unit::createDimensioned(double value) {
-  return std::make_pair(dimension(), value * factor());
+  return DimensionedQuantity(dimension(), value * factor());
 }
 
 DimensionedQuantity UnitConv::convertTo(DimensionedQuantity quantity, std::string toUnit) {
   auto unit = Unit::findUnit(toUnit);
   if (!unit) {
-    return std::make_pair(0,0);
+    return DimensionedQuantity(0,0);
   }
-  printf("qty %.10lf tounit factor %.10lf\n", quantity.second, unit->factor());
-  return std::make_pair(unit->dimension(), quantity.second / unit->factor());
+  printf("qty %.10lf tounit factor %.10lf\n", quantity.value, unit->factor());
+  return DimensionedQuantity(unit->dimension(), quantity.value / unit->factor());
 }
 
-CompoundUnit::CompoundUnit(std::string unitName, std::set<std::string> unitAliases, std::map<std::string, double> unitComponents) : Unit(unitName, unitAliases) {
+CompoundUnit::CompoundUnit(std::string unitName, std::set<std::string> unitAliases, std::map<std::string, double> unitComponents, double constant) : Unit(unitName, unitAliases), constantMultiplier(constant) {
   for (auto comp : unitComponents) {
     auto unit = findUnit(comp.first);
     if (unit) {
@@ -61,5 +61,28 @@ double CompoundUnit::factor() {
     auto power = comp.second.second;
     ret *= pow(unit->factor(), power);
   }
-  return ret;
+  return ret * constantMultiplier;
+}
+
+DimensionedQuantity DimensionedQuantity::operator+(const DimensionedQuantity& other) const {
+  DimensionType dim = 0;
+  if (other.dimension == dimension) {
+    dim = dimension;
+  }
+  return DimensionedQuantity(dim, value + other.value);
+}
+DimensionedQuantity DimensionedQuantity::operator-(const DimensionedQuantity& other) const {
+  DimensionType dim = 0;
+  if (other.dimension == dimension) {
+    dim = dimension;
+  }
+  return DimensionedQuantity(dim, value - other.value);
+}
+DimensionedQuantity DimensionedQuantity::operator*(const DimensionedQuantity& other) const {
+  DimensionType dim = dimension + other.dimension - UnitConv::BIAS;
+  return DimensionedQuantity(dim, value * other.value);
+}
+DimensionedQuantity DimensionedQuantity::operator/(const DimensionedQuantity& other) const {
+  DimensionType dim = dimension + UnitConv::BIAS - other.dimension;
+  return DimensionedQuantity(dim, value / other.value);
 }
