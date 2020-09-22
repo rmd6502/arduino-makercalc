@@ -1,6 +1,4 @@
 #include "unitconv.h"
-Unit::ConversionMapType Unit::conversionMap = {};
-#include "units.h"
 
 #include <map>
 #include <math.h>
@@ -17,23 +15,33 @@ std::shared_ptr<Unit> Unit::findUnit(std::string unitName)
   return unitIt->second;
 }
 
-DimensionedQuantity Unit::createDimensioned(double value, std::string fromUnit)
+UnitQuantity::UnitQuantity(std::shared_ptr<Unit> u, double q) : unit(u), value(q)
+{
+  dimension = unit->dimension();
+}
+
+double UnitQuantity::normalizedValue() const { return value * unit->factor(); }
+
+UnitQuantity Unit::createDimensioned(double value, std::string fromUnit)
 {
   auto unit = findUnit(fromUnit);
-  return unit->createDimensioned(value);
+  if (unit) {
+    return unit->createDimensioned(value);
+  }
+  return UnitQuantity(nullptr,0);
 }
 
-DimensionedQuantity Unit::createDimensioned(double value)
+UnitQuantity Unit::createDimensioned(double value)
 {
-  return DimensionedQuantity(dimension(), value * factor());
+  return UnitQuantity(shared_from_this(), value);
 }
 
-UnitQuantity UnitConv::convertTo(DimensionedQuantity *const quantity, std::string toUnit)
+UnitQuantity UnitConv::convertTo(UnitQuantity *const quantity, std::string toUnit)
 {
   auto unit = Unit::findUnit(toUnit);
   if (!unit)
   {
-    return UnitQuantity(0, 0);
+    return UnitQuantity(nullptr, 0);
   }
   printf("qty %.10lf tounit factor %.10lf\n", quantity->normalizedValue(), unit->factor());
   return UnitQuantity(unit, quantity->normalizedValue() / unit->factor());
@@ -64,6 +72,7 @@ DimensionType CompoundUnit::dimension()
   }
   return ret;
 }
+
 double CompoundUnit::factor()
 {
   double ret = 1;
@@ -76,31 +85,39 @@ double CompoundUnit::factor()
   return ret * constantMultiplier;
 }
 
-DimensionedQuantity DimensionedQuantity::operator+(const DimensionedQuantity &other) const
+UnitQuantity UnitQuantity::operator+(const UnitQuantity &other) const
 {
   DimensionType dim = 0;
+  double val = other.value;
   if (other.dimension == dimension)
   {
     dim = dimension;
+    if (other.unit != unit) {
+      val = other.normalizedValue() * unit->factor();
+    }
   }
-  return DimensionedQuantity(dim, value + other.value);
+  return UnitQuantity(unit, value + val);
 }
-DimensionedQuantity DimensionedQuantity::operator-(const DimensionedQuantity &other) const
+UnitQuantity UnitQuantity::operator-(const UnitQuantity &other) const
 {
   DimensionType dim = 0;
+  double val = other.value;
   if (other.dimension == dimension)
   {
     dim = dimension;
+    if (other.unit != unit) {
+      val = other.normalizedValue() * unit->factor();
+    }
   }
-  return DimensionedQuantity(dim, value - other.value);
+  return UnitQuantity(unit, value - val);
 }
-DimensionedQuantity DimensionedQuantity::operator*(const DimensionedQuantity &other) const
+UnitQuantity UnitQuantity::operator*(const UnitQuantity &other) const
 {
   DimensionType dim = dimension + other.dimension - UnitConv::BIAS;
-  return DimensionedQuantity(dim, value * other.value);
+  return UnitQuantity(unit, value * other.value);
 }
-DimensionedQuantity DimensionedQuantity::operator/(const DimensionedQuantity &other) const
+UnitQuantity UnitQuantity::operator/(const UnitQuantity &other) const
 {
   DimensionType dim = dimension + UnitConv::BIAS - other.dimension;
-  return DimensionedQuantity(dim, value / other.value);
+  return UnitQuantity(unit, value / other.value);
 }

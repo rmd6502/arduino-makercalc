@@ -1,13 +1,15 @@
-#ifndef __UNITS_H__
-#define __UNITS_H__
+#include "unitconv.h"
 
-static SimpleUnit *inch = new SimpleUnit("inch", {"in", "inches", "\""}, 0.0254, UnitConv::LENGTH_UNIT + UnitConv::BIAS);
-static SimpleUnit *foot = new SimpleUnit("foot", {"ft", "feet", "'"}, 0.0254 * 12, UnitConv::LENGTH_UNIT + UnitConv::BIAS);
-static SimpleUnit *yard = new SimpleUnit("yard", {"yd", "yards"}, 0.0254 * 36, UnitConv::LENGTH_UNIT + UnitConv::BIAS);
-static SimpleUnit *mile = new SimpleUnit("mile", {"mi", "miles"}, 0.0254 * 5280, UnitConv::LENGTH_UNIT + UnitConv::BIAS);
-static SimpleUnit *mm = new SimpleUnit("mm", {"millimeter", "millimeters"}, 0.001, UnitConv::LENGTH_UNIT + UnitConv::BIAS);
-static SimpleUnit *cm = new SimpleUnit("cm", {"centimeter", "centimeters"}, 0.01, UnitConv::LENGTH_UNIT + UnitConv::BIAS);
-static SimpleUnit *m = new SimpleUnit("m", {"meter", "meters"},1, UnitConv::LENGTH_UNIT + UnitConv::BIAS);
+Unit::ConversionMapType Unit::conversionMap = {};
+
+static SimpleUnit *inch = new SimpleUnit("inch", {"in", "inches", "\""}, 0.0254, UnitConv::LENGTH_UNIT + UnitConv::BIAS, UNITCLASS_IMPERIAL);
+static SimpleUnit *foot = new SimpleUnit("foot", {"ft", "feet", "'"}, 0.0254 * 12, UnitConv::LENGTH_UNIT + UnitConv::BIAS, UNITCLASS_IMPERIAL);
+static SimpleUnit *yard = new SimpleUnit("yard", {"yd", "yards"}, 0.0254 * 36, UnitConv::LENGTH_UNIT + UnitConv::BIAS, UNITCLASS_IMPERIAL);
+static SimpleUnit *mile = new SimpleUnit("mile", {"mi", "miles"}, 0.0254 * 5280 * 12, UnitConv::LENGTH_UNIT + UnitConv::BIAS, UNITCLASS_IMPERIAL);
+static SimpleUnit *mm = new SimpleUnit("mm", {"millimeter", "millimeters"}, 0.001, UnitConv::LENGTH_UNIT + UnitConv::BIAS, UNITCLASS_SI_CGS);
+static SimpleUnit *cm = new SimpleUnit("cm", {"centimeter", "centimeters"}, 0.01, UnitConv::LENGTH_UNIT + UnitConv::BIAS, UNITCLASS_SI_CGS);
+static SimpleUnit *m = new SimpleUnit("m", {"meter", "meters"},1, UnitConv::LENGTH_UNIT + UnitConv::BIAS, UNITCLASS_SI_MKS);
+static SimpleUnit *kg = new SimpleUnit("kg", {"kilogram"}, 1, UnitConv::MASS_UNIT + UnitConv::BIAS, UNITCLASS_SI_MKS);
 
 
 static CompoundUnit *sqin = new CompoundUnit("sqin",std::set<std::string>{"in2","in²","square inches", "square inch"},
@@ -35,5 +37,3 @@ static CompoundUnit *gal = new CompoundUnit("gallon", std::set<std::string>{"gal
 
 static CompoundUnit *acre = new CompoundUnit("acre",std::set<std::string>{},
   std::map<std::string, double>{{"sqyd", 1}}, 4840);
-
-#endif

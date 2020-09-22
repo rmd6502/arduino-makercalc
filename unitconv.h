@@ -10,36 +10,41 @@ class Unit;
 
 using DimensionType = uint32_t;
 
-// Represents a quantity normalized to the mks system
-struct DimensionedQuantity
-{
-  DimensionType dimension;
-  double value;
-  DimensionedQuantity(DimensionType dim, double q) : dimension(dim), value(q) {}
-  explicit DimensionedQuantity(double q) : dimension(0), value(q) {}
-  virtual double normalizedValue() { return value; }
-  DimensionedQuantity operator+(const DimensionedQuantity &other) const;
-  DimensionedQuantity operator-(const DimensionedQuantity &other) const;
-  DimensionedQuantity operator*(const DimensionedQuantity &other) const;
-  DimensionedQuantity operator/(const DimensionedQuantity &other) const;
-};
-
 enum UnitClass {
-  UNITCLASS_SI,
+  UNITCLASS_SI_MKS,
+  UNITCLASS_SI_CGS,
   UNITCLASS_IMPERIAL,
   UNITCLASS_OTHER,
 };
 
-struct Unit
+// Represents a quantity in a specified unit
+struct UnitQuantity
 {
+  DimensionType dimension;
+  double value;
+  std::shared_ptr<Unit> unit;
+  UnitQuantity(std::shared_ptr<Unit> u, double q);
+  
+  // value is the converted value, so this returns
+  // the value normalized to mks common units.
+  double normalizedValue() const;
+  UnitQuantity operator+(const UnitQuantity &other) const;
+  UnitQuantity operator-(const UnitQuantity &other) const;
+  UnitQuantity operator*(const UnitQuantity &other) const;
+  UnitQuantity operator/(const UnitQuantity &other) const;
+};
+
+struct Unit : public std::enable_shared_from_this<Unit>
+{
+  using SPtr = std::shared_ptr<Unit>;
   std::string name;
   UnitClass unitClass;
   std::set<std::string> aliases;
-  typedef std::map<std::string, std::shared_ptr<Unit>> ConversionMapType;
+  typedef std::map<std::string, SPtr> ConversionMapType;
   static ConversionMapType conversionMap;
-  Unit(std::string unitName, std::set<std::string> unitAliases, UnitClass uClass = UNITCLASS_SI) : name(unitName), aliases(unitAliases), unitClass(uClass)
+  Unit(std::string unitName, std::set<std::string> unitAliases, UnitClass uClass = UNITCLASS_SI_MKS) : name(unitName), aliases(unitAliases), unitClass(uClass)
   {
-    std::shared_ptr<Unit> sharedSelf(this);
+    SPtr sharedSelf = SPtr(this);
     conversionMap[unitName] = sharedSelf;
     for (auto alias : unitAliases)
     {
@@ -47,24 +52,11 @@ struct Unit
     }
   }
 
-  static DimensionedQuantity createDimensioned(double value, std::string fromUnit);
-  DimensionedQuantity createDimensioned(double value);
   virtual double factor() { return 0; }
   virtual DimensionType dimension() { return 0; }
-  static std::shared_ptr<Unit> findUnit(std::string unitName);
-};
-
-// Represents a quantity in a specified unit
-struct UnitQuantity : public DimensionedQuantity
-{
-  std::shared_ptr<Unit> unit;
-  UnitQuantity(std::shared_ptr<Unit> u, double q) : DimensionedQuantity(q)
-  {
-    dimension = u->dimension();
-  }
-  // value is the converted value, so this returns
-  // the value normalized to mks common units.
-  double normalizedValue() { return value / unit->factor(); }
+  static SPtr findUnit(std::string unitName);
+  static UnitQuantity createDimensioned(double value, std::string fromUnit);
+  UnitQuantity createDimensioned(double value);
 };
 
 struct UnitConv
@@ -75,7 +67,7 @@ struct UnitConv
   static constexpr uint32_t TIME_UNIT = 1000;
   static constexpr uint32_t BIAS = 5555;
 
-  static UnitQuantity convertTo(DimensionedQuantity *const quantity, std::string toUnit);
+  static UnitQuantity convertTo(UnitQuantity *const quantity, std::string toUnit);
 };
 
 struct ConstantUnit : Unit
@@ -90,7 +82,7 @@ struct SimpleUnit : Unit
 {
   double conversion;
   DimensionType dim;
-  SimpleUnit(std::string unitName, std::set<std::string> unitAliases, double factor, DimensionType dimensionType, UnitClass uClass = UNITCLASS_SI) : Unit(unitName, unitAliases, uClass), conversion(factor), dim(dimensionType) {}
+  SimpleUnit(std::string unitName, std::set<std::string> unitAliases, double factor, DimensionType dimensionType, UnitClass uClass = UNITCLASS_SI_MKS) : Unit(unitName, unitAliases, uClass), conversion(factor), dim(dimensionType) {}
   virtual double factor() { return conversion; }
   virtual DimensionType dimension() { return dim; }
 };
@@ -102,7 +94,7 @@ struct CompoundUnit : Unit
   // would be [<kg,1>,<m,1>,<s,-2>]
   double constantMultiplier;
   std::map<std::string, std::pair<std::shared_ptr<Unit>, double>> components;
-  CompoundUnit(std::string unitName, std::set<std::string> unitAliases, std::map<std::string, double> unitComponents, double constant = 1, UnitClass uClass = UNITCLASS_SI);
+  CompoundUnit(std::string unitName, std::set<std::string> unitAliases, std::map<std::string, double> unitComponents, double constant = 1, UnitClass uClass = UNITCLASS_SI_MKS);
   DimensionType dimension();
   double factor();
 };
