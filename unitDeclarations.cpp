@@ -1,6 +1,7 @@
 #include "unitconv.h"
 
 Unit::ConversionMapType Unit::conversionMap = {};
+Unit::DimensionMapType Unit::dimensionMap = {};
 
 static SimpleUnit *inch = new SimpleUnit("inch", {"in", "inches", "\""}, 0.0254, UnitConv::LENGTH_UNIT + UnitConv::BIAS, UNITCLASS_IMPERIAL);
 static SimpleUnit *foot = new SimpleUnit("foot", {"ft", "feet", "'"}, 0.0254 * 12, UnitConv::LENGTH_UNIT + UnitConv::BIAS, UNITCLASS_IMPERIAL);
@@ -35,5 +36,5 @@ static CompoundUnit *gal = new CompoundUnit("gallon", std::set<std::string>{"gal
     std::map<std::string, double>{{"quart", 1}}, 4);
 
 
-static CompoundUnit *acre = new CompoundUnit("acre",std::set<std::string>{},
+static CompoundUnit *acre = new CompoundUnit("acre",std::set<std::string>{"acre"},
   std::map<std::string, double>{{"sqyd", 1}}, 4840);

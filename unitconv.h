@@ -42,13 +42,14 @@ struct Unit : public std::enable_shared_from_this<Unit>
   std::set<std::string> aliases;
   typedef std::map<std::string, SPtr> ConversionMapType;
   static ConversionMapType conversionMap;
+  typedef std::map<DimensionType, std::vector<SPtr>> DimensionMapType;
+  static DimensionMapType dimensionMap;
   Unit(std::string unitName, std::set<std::string> unitAliases, UnitClass uClass = UNITCLASS_SI_MKS) : name(unitName), aliases(unitAliases), unitClass(uClass)
   {
-    SPtr sharedSelf = SPtr(this);
-    conversionMap[unitName] = sharedSelf;
+    conversionMap[unitName] = std::shared_ptr<Unit>(this);
     for (auto alias : unitAliases)
     {
-      conversionMap[alias] = sharedSelf;
+      conversionMap[alias] = shared_from_this();
     }
   }
 
@@ -68,6 +69,7 @@ struct UnitConv
   static constexpr uint32_t BIAS = 5555;
 
   static UnitQuantity convertTo(UnitQuantity *const quantity, std::string toUnit);
+  static Unit::SPtr unitForDimension(DimensionType dim, UnitClass uClass);
 };
 
 struct ConstantUnit : Unit
@@ -82,7 +84,9 @@ struct SimpleUnit : Unit
 {
   double conversion;
   DimensionType dim;
-  SimpleUnit(std::string unitName, std::set<std::string> unitAliases, double factor, DimensionType dimensionType, UnitClass uClass = UNITCLASS_SI_MKS) : Unit(unitName, unitAliases, uClass), conversion(factor), dim(dimensionType) {}
+  SimpleUnit(std::string unitName, std::set<std::string> unitAliases, double factor, DimensionType dimensionType, UnitClass uClass = UNITCLASS_SI_MKS) : Unit(unitName, unitAliases, uClass), conversion(factor), dim(dimensionType) {
+    dimensionMap[dim].push_back(shared_from_this());
+  }
   virtual double factor() { return conversion; }
   virtual DimensionType dimension() { return dim; }
 };

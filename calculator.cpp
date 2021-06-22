@@ -44,10 +44,8 @@ void Calculator::input(char key) {
             this->result[result_pos] = '\0';
         }
     } else {
-        Serial.println("A");
         // Store Operand
         if (!initialInput) {
-          Serial.println("AA");
           double value = strtod(input_buffer, nullptr);
           if (num_pos < NUM_STACK_LENGTH) {
               num_stack[num_pos++] = value;
@@ -73,7 +71,6 @@ void Calculator::input(char key) {
         } else if (key == 'C') {
           init();
         } else if (key == 'E') {
-          Serial.print("B ");Serial.println(num_pos);
           if (num_pos > 0) {
             num_stack[num_pos-1] = sqrt(num_stack[num_pos - 1]);
             snprintf(result, RESULT_SIZE, "%g", num_stack[num_pos - 1]);

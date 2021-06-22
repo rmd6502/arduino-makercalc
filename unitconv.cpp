@@ -4,6 +4,7 @@
 #include <math.h>
 #include <string>
 #include <stdint.h>
+#include <iostream>
 
 std::shared_ptr<Unit> Unit::findUnit(std::string unitName)
 {
@@ -47,6 +48,16 @@ UnitQuantity UnitConv::convertTo(UnitQuantity *const quantity, std::string toUni
   return UnitQuantity(unit, quantity->normalizedValue() / unit->factor());
 }
 
+Unit::SPtr UnitConv::unitForDimension(DimensionType dim, UnitClass uClass) {
+  std::vector<Unit::SPtr> &units = Unit::dimensionMap[dim];
+  for (Unit::SPtr unit : units) {
+    if (unit->unitClass == uClass) {
+      return unit;
+    }
+  }
+  return Unit::SPtr(nullptr);
+}
+
 CompoundUnit::CompoundUnit(std::string unitName, std::set<std::string> unitAliases, std::map<std::string, double> unitComponents, double constant, UnitClass uClass) : Unit(unitName, unitAliases, uClass), constantMultiplier(constant)
 {
   for (auto comp : unitComponents)
@@ -54,9 +65,12 @@ CompoundUnit::CompoundUnit(std::string unitName, std::set<std::string> unitAlias
     auto unit = findUnit(comp.first);
     if (unit)
     {
+      uClass = unit->unitClass;
       components[comp.first] = std::make_pair(unit, comp.second);
     }
   }
+  this->unitClass = uClass;
+  dimensionMap[dimension()].push_back(shared_from_this());
 }
 
 DimensionType CompoundUnit::dimension()
@@ -119,5 +133,10 @@ UnitQuantity UnitQuantity::operator*(const UnitQuantity &other) const
 UnitQuantity UnitQuantity::operator/(const UnitQuantity &other) const
 {
   DimensionType dim = dimension + UnitConv::BIAS - other.dimension;
-  return UnitQuantity(unit, value / other.value);
+  double newValue = value / other.value;
+  newValue *= unit->factor() / other.unit->factor();
+  Unit::SPtr newUnit = UnitConv::unitForDimension(dim, unit->unitClass);
+  newValue /= newUnit->factor();
+
+  return UnitQuantity(newUnit, newValue);
 }
